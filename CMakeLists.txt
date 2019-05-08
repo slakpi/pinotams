@@ -38,7 +38,7 @@ add_executable(pinotams
   config.c
   ${BISON_ConfParser_OUTPUTS}
   ${FLEX_ConfLexer_OUTPUTS})
-target_link_libraries(pinotams curl jansson sqlite3)
+target_link_libraries(pinotams curl jansson sqlite3 etpan)
 
 install(TARGETS pinotams DESTINATION bin)
 install(FILES pinotams.conf.example DESTINATION ${ETC_PREFIX})
