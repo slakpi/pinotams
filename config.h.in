@@ -2,5 +2,7 @@
 #define CONFIG_H
 
 #define INSTALL_PREFIX "${INSTALL_PREFIX}"
+#define CONFIG_FILE "${CONFIG_FILE}"
+#define CACHE_FILE "${CACHE_FILE}"
 
 #endif

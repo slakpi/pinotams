@@ -1,0 +1,79 @@
+#include <string.h>
+#include <config.h>
+
+typedef void* yyscan_t;
+
+#include "config_helpers.h"
+#include "conf_file.h"
+#include "conf_file.parser.h"
+
+#define YYSTYPE CONF_STYPE
+
+#include "conf_file.lexer.h"
+
+PinotamsConfig* getPinotamsConfig()
+{
+  FILE *cfgFile;
+  yyscan_t scanner;
+  PinotamsConfig *cfg = (PinotamsConfig*)malloc(sizeof(PinotamsConfig));
+
+  cfg->installPrefix = strdup(INSTALL_PREFIX);
+  cfg->configFile = strdup(CONFIG_FILE);
+  cfg->cacheFile = strdup(CACHE_FILE);
+  cfg->locations = NULL;
+  cfg->apiKey = NULL;
+  cfg->refreshRate = 360;
+
+  cfgFile = fopen(CONFIG_FILE, "r");
+  if (!cfgFile)
+    return cfg;
+
+  conf_lex_init(&scanner);
+  conf_set_in(cfgFile, scanner);
+  conf_parse(scanner, cfg);
+  conf_lex_destroy(scanner);
+
+  fclose(cfgFile);
+
+  return cfg;
+}
+
+void freePinotamsConfig(PinotamsConfig *_cfg)
+{
+  if (_cfg->installPrefix)
+    free(_cfg->installPrefix);
+  if (_cfg->configFile)
+    free(_cfg->configFile);
+  if (_cfg->cacheFile)
+    free(_cfg->cacheFile);
+  if (_cfg->locations)
+    free(_cfg->locations);
+  if (_cfg->apiKey)
+    free(_cfg->apiKey);
+
+  free(_cfg);
+}
+
+static char* appendFileToPath(const char *_prefix, const char *_file, char *_path, size_t _len)
+{
+  size_t pl = strlen(_prefix), fl = strlen(_file);
+
+  if (_prefix[pl - 1] != '/')
+    ++pl;
+  if (pl + fl + 1 >= _len)
+    return NULL;
+
+  _path[0] = 0;
+
+  strcat(_path, _prefix);
+
+  if (_path[pl - 1] != '/')
+  {
+    _path[pl - 1] = '/';
+    _path[pl] = 0;
+  }
+
+  strcat(_path, _file);
+
+  return _path;
+}
