@@ -7,6 +7,7 @@
 #include <string.h>
 #include <stdio.h>
 #include "config_helpers.h"
+#include "notams.h"
 
 static const char *shortArgs = "st";
 static const struct option longArgs[] = {
@@ -27,6 +28,19 @@ static void signalHandler(int _signo)
     run = 0;
     break;
   }
+}
+
+static int go(int _test)
+{
+  PinotamsConfig *cfg = getPinotamsConfig();
+  NOTAM *notams;
+
+  queryNotams(cfg->apiKey, cfg->locations, &notams);
+
+  if (cfg)
+    freePinotamsConfig(cfg);
+
+  return 0;
 }
 
 int main(int _argc, char* _argv[])
@@ -53,10 +67,7 @@ int main(int _argc, char* _argv[])
     signal(SIGINT, signalHandler);
     signal(SIGTERM, signalHandler);
     signal(SIGHUP, signalHandler);
-
-    /* TODO: Do work. */
-
-    return 0;
+    return go(test);
   }
 
   pid = fork();
@@ -81,7 +92,5 @@ int main(int _argc, char* _argv[])
   signal(SIGTERM, signalHandler);
   signal(SIGHUP, signalHandler);
 
-  /* TODO: Do work. */
-
-  return 0;
+  return go(0);
 }

@@ -12,6 +12,7 @@ typedef struct __NOTAM
 } NOTAM;
 
 int queryNotams(const char *_apiKey, const char *_locations, NOTAM **_latest);
+void freeNotams(NOTAM *_notams);
 int trimNotams();
 
 #endif
