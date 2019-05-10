@@ -35,7 +35,7 @@ static int go(int _test)
   PinotamsConfig *cfg = getPinotamsConfig();
   NOTAM *notams;
 
-  queryNotams(cfg->apiKey, cfg->locations, &notams);
+  queryNotams(cfg->cacheFile, cfg->apiKey, cfg->locations, &notams);
 
   if (cfg)
     freePinotamsConfig(cfg);
