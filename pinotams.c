@@ -33,9 +33,22 @@ static void signalHandler(int _signo)
 static int go(int _test)
 {
   PinotamsConfig *cfg = getPinotamsConfig();
-  NOTAM *notams;
+  NOTAM *notams, *p;
 
   queryNotams(cfg->cacheFile, cfg->apiKey, cfg->locations, &notams);
+
+  if (notams)
+  {
+    p = notams;
+    while (p)
+    {
+      printf(p->text);
+      p = p->next;
+    }
+
+    freeNotams(notams);
+    notams = NULL;
+  }
 
   if (cfg)
     freePinotamsConfig(cfg);

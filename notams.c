@@ -1,4 +1,3 @@
-#include <sys/types.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,13 +28,13 @@ static int64_t toLilian(const DateTime *_tm)
   ld = _tm->day + ((153 * m + 2) / 5) + 365 * y + (y / 4) - (y / 100) + (y / 400) - 32045;
 
   ld -= 2299160LL;
-  ld *= 86400LL * 1000000LL; /* days -> microseconds */
-  ld += _tm->hour * 3600LL * 1000000LL;
-  ld += _tm->minute * 60LL * 1000000LL;
-  ld += _tm->second * 1000000LL;
+  ld *= 86400LL; /* days -> seconds */
+  ld += _tm->hour * 3600LL;
+  ld += _tm->minute * 60LL;
+  ld += _tm->second;
 
-  if (ld < 86400LL * 1000000LL)
-    ld = 86400LL * 1000000LL;
+  if (ld < 86400LL)
+    ld = 86400LL;
 
   return ld;
 }
@@ -46,7 +45,6 @@ static void fromLilian(int64_t _ld, DateTime *_tm)
   int v = 3, u = 5, s = 153, w = 2, B = 274277, C = -38;
   int e = 0, f = 0, g = 0, h = 0;
 
-  _ld /= 1000000LL; /* microseconds -> seconds */
   _tm->second = _ld % 60LL; _ld /= 60LL;
   _tm->minute = _ld % 60LL; _ld /= 60LL;
   _tm->hour = _ld % 24LL; _ld /= 24LL;
@@ -135,9 +133,7 @@ static sqlite3* openDatabase(const char *_db)
   r = sqlite3_exec(db,
     "CREATE TABLE notams("
     " key TEXT NOT NULL,"
-    " text TEXT NOT NULL,"
-    " created REAL NOT NULL,"
-    " expires REAL NOT NULL,"
+    " expires INTEGER NOT NULL,"
     " PRIMARY KEY (key));",
     NULL,
     NULL,
@@ -217,10 +213,10 @@ int queryNotams(const char *_db, const char *_apiKey, const char *_locations,
 {
   CURL *curlLib;
   CURLcode res;
-  json_t *root, *n, *notam, *key;
+  json_t *root, *n, *notam, *key, *loc;
   json_error_t err;
   char url[4096], dateBuf[11];
-  const char *notamStr, *keyStr;
+  const char *notamStr, *keyStr, *locStr;
   Response json;
   sqlite3 *db;
   sqlite3_stmt *chk, *ins;
@@ -230,7 +226,10 @@ int queryNotams(const char *_db, const char *_apiKey, const char *_locations,
   int errCode;
   size_t i, notamCount;
   int64_t lds, lde;
+  NOTAM *c, *p;
   int ok = -1;
+
+  *_latest = NULL;
 
   regex = pcre2_compile(
     (PCRE2_SPTR)"([0-9]{10})-([0-9]{10})",
@@ -284,7 +283,7 @@ int queryNotams(const char *_db, const char *_apiKey, const char *_locations,
     goto cleanup;
 
   sqlite3_prepare(db,
-    "INSERT INTO notams(key, text, created, expires) VALUES(?, ?, ?, ?);",
+    "INSERT INTO notams(key, expires) VALUES(?, ?);",
     -1,
     &ins,
     NULL);
@@ -298,6 +297,10 @@ int queryNotams(const char *_db, const char *_apiKey, const char *_locations,
     if (!json_is_object(n))
       continue;
 
+    loc = json_object_get(n, "location");
+    if (!json_is_string(loc))
+      continue;
+
     notam = json_object_get(n, "all");
     if (!json_is_string(notam))
       continue;
@@ -306,6 +309,7 @@ int queryNotams(const char *_db, const char *_apiKey, const char *_locations,
     if (!json_is_string(key))
       continue;
 
+    locStr = json_string_value(loc);
     notamStr = json_string_value(notam);
     keyStr = json_string_value(key);
 
@@ -326,11 +330,25 @@ int queryNotams(const char *_db, const char *_apiKey, const char *_locations,
     if (sqlite3_step(chk) == SQLITE_DONE)
     {
       sqlite3_bind_text(ins, 1, keyStr, -1, SQLITE_STATIC);
-      sqlite3_bind_text(ins, 2, notamStr, -1, SQLITE_STATIC);
-      sqlite3_bind_int64(ins, 3, lds);
-      sqlite3_bind_int64(ins, 4, lde);
+      sqlite3_bind_int64(ins, 2, lde);
       sqlite3_step(ins);
       sqlite3_reset(ins);
+
+      p = (NOTAM*)malloc(sizeof(NOTAM));
+      p->text = strdup(notamStr);
+      p->location = strdup(locStr);
+      p->key = strdup(keyStr);
+      p->created = lds;
+      p->expires = lde;
+      p->next = NULL;
+
+      if (!*_latest)
+        *_latest = c = p;
+      else
+      {
+        c->next = p;
+        c = p;
+      }
     }
 
     sqlite3_reset(chk);
@@ -359,10 +377,47 @@ cleanup:
 
 void freeNotams(NOTAM *_notams)
 {
+  NOTAM *p;
 
+  while (_notams)
+  {
+    p = _notams;
+    _notams = _notams->next;
+
+    if (p->text)
+      free(p->text);
+    if (p->location)
+      free(p->location);
+    if (p->key)
+      free(p->key);
+
+    free(p);
+  }
 }
 
-int trimNotams()
+int trimNotams(const char *_db)
 {
-  return 0;
+  int64_t now = lilianNow();
+  sqlite3 *db;
+  sqlite3_stmt *trim;
+  int ok = -1;
+
+  db = openDatabase(_db);
+  if (!db)
+    goto cleanup;
+
+  sqlite3_prepare(db, "DELETE FROM notams WHERE expires < ?;", -1, &trim, NULL);
+  sqlite3_bind_int64(trim, 1, now);
+  if (sqlite3_step(trim) != SQLITE_DONE)
+    goto cleanup;
+
+  ok = 0;
+
+cleanup:
+  if (trim)
+    sqlite3_finalize(trim);
+  if (db)
+    sqlite3_close_v2(db);
+
+  return ok;
 }
