@@ -1,3 +1,10 @@
+PiNOTAMs: Raspberry Pi Aviation NOTAMs Scraper
+==============================================
+
+IN PROGRESS. PiNOTAMs will be a configurable aviation NOTAMs scraper that
+queries the ICAO API Data Service for new NOTAMs and delivers the text of
+any new NOTAMs to a list of email addresses.
+
 Building
 --------
 
