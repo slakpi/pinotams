@@ -1,7 +1,7 @@
 Building
 --------
 
-PiWx uses CMake 3.6 to build. The following dependencies must be installed:
+PiNotams uses CMake 3.6 to build. The following dependencies must be installed:
 
   * Bison (https://www.gnu.org/software/bison/)
   * Flex (https://github.com/westes/flex)
