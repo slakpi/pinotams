@@ -35,6 +35,7 @@ include_directories(pinotams ${CMAKE_BINARY_DIR})
 add_executable(pinotams
   pinotams.c
   notams.c
+  mail.c
   config.c
   ${BISON_ConfParser_OUTPUTS}
   ${FLEX_ConfLexer_OUTPUTS})
