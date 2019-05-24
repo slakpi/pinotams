@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include "config_helpers.h"
 #include "notams.h"
+#include "mail.h"
 
 static const char *shortArgs = "st";
 static const struct option longArgs[] = {
@@ -33,19 +34,15 @@ static void signalHandler(int _signo)
 static int go(int _test)
 {
   PinotamsConfig *cfg = getPinotamsConfig();
-  NOTAM *notams, *p;
+  NOTAM *notams;
 
   queryNotams(cfg->cacheFile, cfg->apiKey, cfg->locations, &notams);
 
   if (notams)
   {
-    p = notams;
-    while (p)
-    {
-      printf(p->text);
-      p = p->next;
-    }
-
+    mailNotams(cfg->smtpServer, cfg->smtpPort, cfg->smtpUser, cfg->smtpPwd,
+      cfg->smtpSender, cfg->smtpSenderName, cfg->smtpRecipient, cfg->smtpTLS,
+      notams);
     freeNotams(notams);
     notams = NULL;
   }
