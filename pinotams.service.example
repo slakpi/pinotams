@@ -4,7 +4,7 @@ After=multi-user.target
 
 [Service]
 Type=simple
-ExecStart=/usr/local/pinotams/bin/pinotams
+ExecStart=/usr/local/pinotams/bin/pinotams -s
 Restart=on-abort
 
 [Install]
