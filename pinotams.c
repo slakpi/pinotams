@@ -35,17 +35,32 @@ static int go(int _test)
 {
   PinotamsConfig *cfg = getPinotamsConfig();
   NOTAM *notams;
+  time_t nextUpdate = 0, now;
 
-  queryNotams(cfg->cacheFile, cfg->apiKey, cfg->locations, &notams);
-
-  if (notams)
+  do
   {
-    mailNotams(cfg->smtpServer, cfg->smtpPort, cfg->smtpUser, cfg->smtpPwd,
-      cfg->smtpSender, cfg->smtpSenderName, cfg->smtpRecipient, cfg->smtpTLS,
-      notams);
-    freeNotams(notams);
-    notams = NULL;
-  }
+    now = time(0);
+
+    if (now < nextUpdate)
+    {
+      usleep(50000);
+      continue;
+    }
+
+    queryNotams(cfg->cacheFile, cfg->apiKey, cfg->locations, &notams);
+
+    if (notams)
+    {
+      mailNotams(cfg->smtpServer, cfg->smtpPort, cfg->smtpUser, cfg->smtpPwd,
+        cfg->smtpSender, cfg->smtpSenderName, cfg->smtpRecipient, cfg->smtpTLS,
+        notams);
+      freeNotams(notams);
+      notams = NULL;
+    }
+
+    nextUpdate = ((now / cfg->refreshRate) + (now % cfg->refreshRate != 0)) *
+      cfg->refreshRate;
+  } while (run);
 
   if (cfg)
     freePinotamsConfig(cfg);

@@ -76,7 +76,7 @@ assignment
     switch($1)
     {
     case confRefreshRate:
-      _cfg->refreshRate = $3;
+      _cfg->refreshRate = $3 * 60;
       break;
     case confSmtpPort:
       _cfg->smtpPort = $3;

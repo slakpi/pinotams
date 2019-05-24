@@ -22,7 +22,7 @@ PinotamsConfig* getPinotamsConfig()
   cfg->cacheFile = strdup(CACHE_FILE);
   cfg->locations = NULL;
   cfg->apiKey = NULL;
-  cfg->refreshRate = 360;
+  cfg->refreshRate = 360 * 60;
   cfg->smtpServer = NULL;
   cfg->smtpUser = NULL;
   cfg->smtpPwd = NULL;
