@@ -1,5 +1,6 @@
 api-key="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx";
-locations="7S3,KHIO,KMMV,KUAO,KSLE,KVUO,KSPB,KZSE,KZZZ";
+locations="7S3,KHIO,KMMV,KUAO,KSLE,KVUO,KSPB,KZSE";
+refresh-rate=360; # Check for new NOTAMs every X minutes
 smtp-server="my.mail-server.com";
 smtp-port=587;
 smtp-user="sender@mydomain.com";
