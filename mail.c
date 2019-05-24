@@ -33,7 +33,7 @@ static size_t notamCallback(char *_ptr, size_t _size, size_t _nmemb,
   void *_userdata)
 {
   MailContext *ctx = (MailContext*)_userdata;
-  size_t len = min(ctx->remaining, _nmemb);
+  size_t len;
 
   if (!ctx->cur)
     return 0;
@@ -44,6 +44,7 @@ static size_t notamCallback(char *_ptr, size_t _size, size_t _nmemb,
     ctx->remaining = strlen(ctx->cur->text);
   }
 
+  len = min(ctx->remaining, _nmemb);
   memcpy(_ptr, ctx->pos, len);
   ctx->pos += len;
   ctx->remaining -= len;
@@ -85,25 +86,31 @@ int mailNotams(const char *_server, int _port, const char *_user,
   time_t now;
   struct tm nowTime;
   char tmp[4096];
-  char hdr[4096];
-  size_t len;
+  char *hdr;
+  size_t len, buf;
   struct curl_slist *recipients = NULL;
 
   now = time(NULL);
   localtime_r(&now, &nowTime);
-  strftime(tmp, 4096, "%a, %d %b %Y %H:%M:%S %z", &nowTime);
+  len = strftime(tmp, 4096, "%a, %d %b %Y %H:%M:%S %z", &nowTime);
 
-  snprintf(hdr, 4096,
+  buf = strlen(_recipient) + strlen(_senderName) + strlen(_sender) + len;
+  buf = (buf << 1) + 256;
+  hdr = (char*)malloc(sizeof(char) * buf);
+
+  len = snprintf(hdr, buf,
     "To: <%s>\r\n"
     "From: %s <%s>\r\n"
-    "Subject: !! NOTAMs Update !!\r\n"
-    "Date: %s\r\n",
+    "Subject: !! NOTAM Update !!\r\n"
+    "Date: %s\r\n"
+    "X-Priority: 1\r\n"
+    "X-MSMail-Priority: High\r\n"
+    "Importance: High\r\n",
     _recipient, _senderName, _sender, tmp);
 
   uuid_generate(mailId);
   uuid_unparse(mailId, tmp);
-  len = strlen(hdr);
-  snprintf(hdr + len, 4096 - len, "Message-Id: <%s@%s>\r\n\r\n", tmp, _server);
+  snprintf(hdr + len, buf - len, "Message-Id: <%s@%s>\r\n\r\n", tmp, _server);
 
   ctx.state = headerState;
   ctx.cur = _notams;
@@ -134,6 +141,7 @@ int mailNotams(const char *_server, int _port, const char *_user,
   res = curl_easy_perform(curl);
   curl_slist_free_all(recipients);
   curl_easy_cleanup(curl);
+  free(hdr);
 
   return (res == CURLE_OK ? 0 : -1);
 }
