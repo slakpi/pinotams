@@ -218,10 +218,10 @@ int queryNotams(const char *_db, const char *_apiKey, const char *_locations,
   char url[4096], dateBuf[11];
   const char *notamStr, *keyStr, *locStr;
   Response json;
-  sqlite3 *db;
+  sqlite3 *db = NULL;
   sqlite3_stmt *chk, *ins;
   pcre2_code *regex;
-  pcre2_match_data *match;
+  pcre2_match_data *match = NULL;
   PCRE2_SIZE errOffset, *ovect;
   int errCode;
   size_t i, notamCount;
