@@ -57,6 +57,11 @@ WS          [\v\r\n\t ]+
   return TOKEN_PARAM;
 }
 
+"smtp-port" {
+  yylval->param = confSmtpPort;
+  return TOKEN_PARAM;
+}
+
 "smtp-user" {
   yylval->param = confSmtpUser;
   return TOKEN_PARAM;

@@ -7,6 +7,7 @@ typedef enum __ConfParam
   confApiKey,
   confRefreshRate,
   confSmtpServer,
+  confSmtpPort,
   confSmtpUser,
   confSmtpPwd,
   confSmtpSender,
