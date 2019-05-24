@@ -52,6 +52,31 @@ WS          [\v\r\n\t ]+
   return TOKEN_PARAM;
 }
 
+"smtp-server" {
+  yylval->param = confSmtpServer;
+  return TOKEN_PARAM;
+}
+
+"smtp-user" {
+  yylval->param = confSmtpUser;
+  return TOKEN_PARAM;
+}
+
+"smtp-pwd" {
+  yylval->param = confSmtpPwd;
+  return TOKEN_PARAM;
+}
+
+"smtp-recipient" {
+  yylval->param = confSmtpRecipient;
+  return TOKEN_PARAM;
+}
+
+"smtp-tls" {
+  yylval->param = confSmtpTLS;
+  return TOKEN_PARAM;
+}
+
 "=" { return '='; }
 
 ";" { return ';'; }

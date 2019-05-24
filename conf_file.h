@@ -5,7 +5,12 @@ typedef enum __ConfParam
 {
   confLocations,
   confApiKey,
-  confRefreshRate
+  confRefreshRate,
+  confSmtpServer,
+  confSmtpUser,
+  confSmtpPwd,
+  confSmtpRecipient,
+  confSmtpTLS
 } ConfParam;
 
 #endif

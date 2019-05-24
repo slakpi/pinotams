@@ -9,6 +9,11 @@ typedef struct __PinotamsConfig
   char *locations;
   char *apiKey;
   int refreshRate;
+  char *smtpServer;
+  char *smtpUser;
+  char *smtpPwd;
+  char *smtpRecipient;
+  int smtpTLS;
 } PinotamsConfig;
 
 PinotamsConfig* getPinotamsConfig();

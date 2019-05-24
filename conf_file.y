@@ -50,6 +50,18 @@ assignment
     case confApiKey:
       _cfg->apiKey = $3;
       break;
+    case confSmtpServer:
+      _cfg->smtpServer = $3;
+      break;
+    case confSmtpUser:
+      _cfg->smtpUser = $3;
+      break;
+    case confSmtpPwd:
+      _cfg->smtpPwd = $3;
+      break;
+    case confSmtpRecipient:
+      _cfg->smtpRecipient = $3;
+      break;
     default:
       YYERROR;
     }
@@ -59,6 +71,9 @@ assignment
     {
     case confRefreshRate:
       _cfg->refreshRate = $3;
+      break;
+    case confSmtpTLS:
+      _cfg->smtpTLS = ($3 != 0);
       break;
     default:
       YYERROR;

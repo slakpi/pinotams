@@ -23,6 +23,11 @@ PinotamsConfig* getPinotamsConfig()
   cfg->locations = NULL;
   cfg->apiKey = NULL;
   cfg->refreshRate = 360;
+  cfg->smtpServer = NULL;
+  cfg->smtpUser = NULL;
+  cfg->smtpPwd = NULL;
+  cfg->smtpRecipient = NULL;
+  cfg->smtpTLS = 0;
 
   cfgFile = fopen(CONFIG_FILE, "r");
   if (!cfgFile)
