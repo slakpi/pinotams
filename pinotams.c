@@ -47,6 +47,7 @@ static int go(int _test)
       continue;
     }
 
+    trimNotams(cfg->cacheFile);
     queryNotams(cfg->cacheFile, cfg->apiKey, cfg->locations, &notams);
 
     if (notams)
