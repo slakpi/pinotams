@@ -1,0 +1,11 @@
+[Unit]
+Description=NOTAM Scraper
+After=multi-user.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/pinotams/bin/pinotams
+Restart=on-abort
+
+[Install]
+WantedBy=multi-user.target
