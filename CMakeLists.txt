@@ -43,3 +43,4 @@ target_link_libraries(pinotams curl jansson sqlite3 pcre2-8 uuid)
 
 install(TARGETS pinotams DESTINATION bin)
 install(FILES pinotams.conf.example DESTINATION ${ETC_PREFIX})
+install(DIRECTORY DESTINATION ${VAR_PREFIX})
