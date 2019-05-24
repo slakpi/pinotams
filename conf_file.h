@@ -9,6 +9,8 @@ typedef enum __ConfParam
   confSmtpServer,
   confSmtpUser,
   confSmtpPwd,
+  confSmtpSender,
+  confSmtpSenderName,
   confSmtpRecipient,
   confSmtpTLS
 } ConfParam;

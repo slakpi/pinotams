@@ -1,0 +1,10 @@
+api-key="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx";
+locations="7S3,KHIO,KMMV,KUAO,KSLE,KVUO,KSPB,KZSE,KZZZ";
+smtp-server="my.mail-server.com";
+smtp-port=587;
+smtp-user="sender@mydomain.com";
+smtp-pwd="secret";
+smtp-sender="sender@mydomain.com";
+smtp-sender-name="My NOTAMs Service";
+smtp-recipient="you@yourdomain.com";
+smtp-tls=1;

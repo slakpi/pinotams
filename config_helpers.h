@@ -12,6 +12,8 @@ typedef struct __PinotamsConfig
   char *smtpServer;
   char *smtpUser;
   char *smtpPwd;
+  char *smtpSender;
+  char *smtpSenderName;
   char *smtpRecipient;
   int smtpTLS;
 } PinotamsConfig;

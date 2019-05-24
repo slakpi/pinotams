@@ -67,6 +67,16 @@ WS          [\v\r\n\t ]+
   return TOKEN_PARAM;
 }
 
+"smtp-sender" {
+  yylval->param = confSmtpSender;
+  return TOKEN_PARAM;
+}
+
+"smtp-sender-name" {
+  yylval->param = confSmtpSenderName;
+  return TOKEN_PARAM;
+}
+
 "smtp-recipient" {
   yylval->param = confSmtpRecipient;
   return TOKEN_PARAM;

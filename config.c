@@ -26,6 +26,8 @@ PinotamsConfig* getPinotamsConfig()
   cfg->smtpServer = NULL;
   cfg->smtpUser = NULL;
   cfg->smtpPwd = NULL;
+  cfg->smtpSender = NULL;
+  cfg->smtpSenderName = NULL;
   cfg->smtpRecipient = NULL;
   cfg->smtpTLS = 0;
 
@@ -55,6 +57,18 @@ void freePinotamsConfig(PinotamsConfig *_cfg)
     free(_cfg->locations);
   if (_cfg->apiKey)
     free(_cfg->apiKey);
+  if (_cfg->smtpServer)
+    free(_cfg->smtpServer);
+  if (_cfg->smtpUser)
+    free(_cfg->smtpUser);
+  if (_cfg->smtpPwd)
+    free(_cfg->smtpPwd);
+  if (_cfg->smtpSender)
+    free(_cfg->smtpSender);
+  if (_cfg->smtpSenderName)
+    free(_cfg->smtpSenderName);
+  if (_cfg->smtpRecipient)
+    free(_cfg->smtpRecipient);
 
   free(_cfg);
 }

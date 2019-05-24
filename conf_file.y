@@ -59,6 +59,12 @@ assignment
     case confSmtpPwd:
       _cfg->smtpPwd = $3;
       break;
+    case confSmtpSender:
+      _cfg->smtpSender = $3;
+      break;
+    case confSmtpSenderName:
+      _cfg->smtpSenderName = $3;
+      break;
     case confSmtpRecipient:
       _cfg->smtpRecipient = $3;
       break;
