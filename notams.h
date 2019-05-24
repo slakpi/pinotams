@@ -1,5 +1,5 @@
-#ifndef NOTAM_H
-#define NOTAM_H
+#ifndef NOTAMS_H
+#define NOTAMS_H
 
 #include <sys/types.h>
 
@@ -15,9 +15,7 @@ typedef struct __NOTAM
 
 int queryNotams(const char *_db, const char *_apiKey, const char *_locations,
   NOTAM **_latest);
-
 void freeNotams(NOTAM *_notams);
-
 int trimNotams(const char *_db);
 
 #endif
