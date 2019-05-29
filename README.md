@@ -40,6 +40,34 @@ email address.
 
 You must register for an ICAO API key and have access to a SMTP server.
 
+    # ICAO API Data Service key. Register here:
+    # https://www.icao.int/safety/iStars/Pages/API-Data-Service.aspx
+    api-key="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx";
+
+    # Locations for data query. ICAO allows up to 10 in a single query.
+    # Use KZ** for ARTCC NOTAMs, e.g. KZSE for Seattle Center.
+    locations="7S3,KHIO,KMMV,KUAO,KSLE,KVUO,KSPB,KZSE";
+
+    # Interval in minutes for NOTAM queries. To be kind to the ICAO service,
+    # keep this larger than 60 minutes. PiNOTAMs updates at 0000Z + this time
+    # rather than startup + this time. So, if this is set for 6 hours and it
+    # is 0555Z when PiNOTAMs starts, the first update will be at 0600Z, not
+    # 1155Z.
+    refresh-rate=360;
+
+    # SMTP outgoing mail server settings. Refer to your mail service's
+    # settings. NOT tested with Gmail's application permissions.
+    smtp-server="my.mail-server.com";
+    smtp-port=587;
+    smtp-user="sender@mydomain.com";
+    smtp-pwd="secret";
+    smtp-sender="sender@mydomain.com";
+    smtp-sender-name="My NOTAMs Service";
+    smtp-recipient="you@yourdomain.com";
+
+    # 1 to use SSL/TLS and user/password authentication.
+    smtp-tls=1;
+
 Running Automatically
 ---------------------
 
