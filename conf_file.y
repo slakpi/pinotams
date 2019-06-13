@@ -66,7 +66,8 @@ assignment
       _cfg->smtpSenderName = $3;
       break;
     case confSmtpRecipient:
-      _cfg->smtpRecipient = $3;
+      addStrToVector(_cfg->smtpRecipients, $3);
+      free($3);
       break;
     default:
       YYERROR;

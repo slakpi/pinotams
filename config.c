@@ -28,7 +28,7 @@ PinotamsConfig* getPinotamsConfig()
   cfg->smtpPwd = NULL;
   cfg->smtpSender = NULL;
   cfg->smtpSenderName = NULL;
-  cfg->smtpRecipient = NULL;
+  initStrVector(&cfg->smtpRecipients);
   cfg->smtpTLS = 0;
 
   cfgFile = fopen(CONFIG_FILE, "r");
@@ -67,8 +67,8 @@ void freePinotamsConfig(PinotamsConfig *_cfg)
     free(_cfg->smtpSender);
   if (_cfg->smtpSenderName)
     free(_cfg->smtpSenderName);
-  if (_cfg->smtpRecipient)
-    free(_cfg->smtpRecipient);
+
+  freeStrVector(&_cfg->smtpRecipients);
 
   free(_cfg);
 }

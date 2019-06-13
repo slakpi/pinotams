@@ -1,6 +1,8 @@
 #ifndef CONFIG_HELPERS_H
 #define CONFIG_HELPERS_H
 
+#include "str_vector.h"
+
 typedef struct __PinotamsConfig
 {
   char *installPrefix;
@@ -15,7 +17,7 @@ typedef struct __PinotamsConfig
   char *smtpPwd;
   char *smtpSender;
   char *smtpSenderName;
-  char *smtpRecipient;
+  StrVector smtpRecipients;
   int smtpTLS;
 } PinotamsConfig;
 

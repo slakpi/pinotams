@@ -53,7 +53,7 @@ static int go(int _test)
     if (notams)
     {
       mailNotams(cfg->smtpServer, cfg->smtpPort, cfg->smtpUser, cfg->smtpPwd,
-        cfg->smtpSender, cfg->smtpSenderName, cfg->smtpRecipient, cfg->smtpTLS,
+        cfg->smtpSender, cfg->smtpSenderName, cfg->smtpRecipients, cfg->smtpTLS,
         notams);
       freeNotams(notams);
       notams = NULL;

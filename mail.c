@@ -77,7 +77,7 @@ static size_t notamCallback(char *_ptr, size_t _size, size_t _nmemb,
 
 int mailNotams(const char *_server, int _port, const char *_user,
   const char *_pwd, const char *_sender, const char *_senderName,
-  const char *_recipient, int _tls, const NOTAM *_notams)
+  const StrVector _recipients, int _tls, const NOTAM *_notams)
 {
   MailContext ctx;
   CURL *curl;
@@ -86,31 +86,70 @@ int mailNotams(const char *_server, int _port, const char *_user,
   time_t now;
   struct tm nowTime;
   char tmp[4096];
-  char *hdr;
-  size_t len, buf;
-  struct curl_slist *recipients = NULL;
+  char *hdr, *p;
+  size_t len, buf, i, r;
+  int first = 1;
+  struct curl_slist *recipients = NULL, *recipTmp = NULL;
+
+  buf = 0;
+  r = getStrVectorCount(_recipients);
+  if (r < 1)
+    return -1;
+
+  for (i = 0; i < r; ++i)
+  {
+    buf += strlen(getStrInVector(_recipients, i) + 4);
+    recipTmp = curl_slist_append(recipients, getStrInVector(_recipients, i));
+
+    if (!recipTmp)
+    {
+      if (recipients)
+        curl_slist_free_all(recipients);
+
+      return -1;
+    }
+
+    recipients = recipTmp;
+  }
 
   now = time(NULL);
   localtime_r(&now, &nowTime);
   len = strftime(tmp, 4096, "%a, %d %b %Y %H:%M:%S %z", &nowTime);
 
-  buf = strlen(_recipient) + strlen(_senderName) + strlen(_sender) + len;
+  buf += strlen(_senderName) + strlen(_sender) + len;
   buf = (buf << 1) + 256;
   hdr = (char*)malloc(sizeof(char) * buf);
 
-  len = snprintf(hdr, buf,
-    "To: <%s>\r\n"
+  r = getStrVectorCount(_recipients);
+  strncpy(hdr, "To:", 4);
+  p = hdr + 3;
+  for (i = 0; i < r; ++i)
+  {
+    if (!first)
+      *p++ = ',';
+
+    len = snprintf(p, buf - (p - hdr), " <%s>",
+      getStrInVector(_recipients, i));
+
+    p += len;
+    first = 0;
+  }
+
+  len = snprintf(p, buf,
+    "\r\n"
     "From: %s <%s>\r\n"
     "Subject: !! NOTAM Update !!\r\n"
     "Date: %s\r\n"
     "X-Priority: 1\r\n"
     "X-MSMail-Priority: High\r\n"
     "Importance: High\r\n",
-    _recipient, _senderName, _sender, tmp);
+    _senderName, _sender, tmp);
+
+  p += len;
 
   uuid_generate(mailId);
   uuid_unparse(mailId, tmp);
-  snprintf(hdr + len, buf - len, "Message-Id: <%s@%s>\r\n\r\n", tmp, _server);
+  snprintf(p, buf - (p - hdr), "Message-Id: <%s@%s>\r\n\r\n", tmp, _server);
 
   ctx.state = headerState;
   ctx.cur = _notams;
@@ -130,10 +169,7 @@ int mailNotams(const char *_server, int _port, const char *_user,
     curl_easy_setopt(curl, CURLOPT_USE_SSL, (long)CURLUSESSL_ALL);
 
   curl_easy_setopt(curl, CURLOPT_MAIL_FROM, _sender);
-
-  recipients = curl_slist_append(recipients, _recipient);
   curl_easy_setopt(curl, CURLOPT_MAIL_RCPT, recipients);
-
   curl_easy_setopt(curl, CURLOPT_READFUNCTION, notamCallback);
   curl_easy_setopt(curl, CURLOPT_READDATA, &ctx);
   curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
