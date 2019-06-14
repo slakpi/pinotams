@@ -6,6 +6,7 @@
 #include <curl/curl.h>
 #include <jansson.h>
 #include <sqlite3.h>
+#include <mhash.h>
 
 #define PCRE2_CODE_UNIT_WIDTH 8
 #include <pcre2.h>
@@ -115,6 +116,27 @@ static int64_t lilianNow()
   return toLilian(&dtNow);
 }
 
+static void hashNotam(const char *_notam, char *_hash, size_t _hashLen)
+{
+  MHASH h;
+  size_t len;
+
+  memset(_hash, 0, sizeof(char) * _hashLen);
+  if (_hashLen < 32)
+    return;
+
+  len = strlen(_notam);
+  if (len < 1)
+    return;
+
+  h = mhash_init(MHASH_SHA256);
+  if (h == MHASH_FAILED)
+    return;
+
+  mhash(h, _notam, len);
+  mhash_deinit(h, _hash);
+}
+
 static sqlite3* openDatabase(const char *_db)
 {
   sqlite3 *db;
@@ -132,9 +154,10 @@ static sqlite3* openDatabase(const char *_db)
 
   r = sqlite3_exec(db,
     "CREATE TABLE notams("
+    " hash BLOB NOT NULL,"
     " key TEXT NOT NULL,"
     " expires INTEGER NOT NULL,"
-    " PRIMARY KEY (key));",
+    " PRIMARY KEY (hash));",
     NULL,
     NULL,
     NULL);
@@ -215,7 +238,7 @@ int queryNotams(const char *_db, const char *_apiKey, const char *_locations,
   CURLcode res;
   json_t *root, *n, *notam, *key, *loc;
   json_error_t err;
-  char url[4096], dateBuf[11];
+  char url[4096], dateBuf[11], hash[32];
   const char *notamStr, *keyStr, *locStr;
   Response json;
   sqlite3 *db = NULL;
@@ -232,7 +255,7 @@ int queryNotams(const char *_db, const char *_apiKey, const char *_locations,
   *_latest = NULL;
 
   regex = pcre2_compile(
-    (PCRE2_SPTR)"([0-9]{10})-([0-9]{10})",
+    (PCRE2_SPTR)"([0-9]{10})-([0-9]{10}|PERM)",
     -1,
     PCRE2_UTF,
     &errCode,
@@ -283,12 +306,12 @@ int queryNotams(const char *_db, const char *_apiKey, const char *_locations,
     goto cleanup;
 
   sqlite3_prepare(db,
-    "INSERT INTO notams(key, expires) VALUES(?, ?);",
+    "INSERT INTO notams(hash, key, expires) VALUES(?, ?, ?);",
     -1,
     &ins,
     NULL);
 
-  sqlite3_prepare(db, "SELECT 1 FROM notams WHERE key = ?;", -1, &chk, NULL);
+  sqlite3_prepare(db, "SELECT 1 FROM notams WHERE hash = ?;", -1, &chk, NULL);
 
   notamCount = json_array_size(root);
   for (i = 0; i < notamCount; ++i)
@@ -325,15 +348,22 @@ int queryNotams(const char *_db, const char *_apiKey, const char *_locations,
     strncpy(dateBuf, &notamStr[ovect[2]], 10);
     lds = notamDateTimeToLilian(dateBuf);
 
-    strncpy(dateBuf, &notamStr[ovect[4]], 10);
-    lde = notamDateTimeToLilian(dateBuf);
+    if (strncasecmp(&notamStr[ovect[4]], "PERM", 4) == 0)
+      lde = lds + 180 * 24 * 60 * 60; // Default to 180 days
+    else
+    {
+      strncpy(dateBuf, &notamStr[ovect[4]], 10);
+      lde = notamDateTimeToLilian(dateBuf);
+    }
 
-    sqlite3_bind_text(chk, 1, keyStr, -1, SQLITE_STATIC);
+    hashNotam(notamStr, hash, 32);
+    sqlite3_bind_blob(chk, 1, hash, 32, SQLITE_STATIC);
 
     if (sqlite3_step(chk) == SQLITE_DONE)
     {
-      sqlite3_bind_text(ins, 1, keyStr, -1, SQLITE_STATIC);
-      sqlite3_bind_int64(ins, 2, lde);
+      sqlite3_bind_blob(ins, 1, hash, 32, SQLITE_STATIC);
+      sqlite3_bind_text(ins, 2, keyStr, -1, SQLITE_STATIC);
+      sqlite3_bind_int64(ins, 3, lde);
       sqlite3_step(ins);
       sqlite3_reset(ins);
 
