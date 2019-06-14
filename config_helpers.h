@@ -8,6 +8,7 @@ typedef struct __PinotamsConfig
   char *installPrefix;
   char *configFile;
   char *cacheFile;
+  char *logFile;
   char *locations;
   char *apiKey;
   int refreshRate;

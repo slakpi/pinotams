@@ -20,6 +20,7 @@ PinotamsConfig* getPinotamsConfig()
   cfg->installPrefix = strdup(INSTALL_PREFIX);
   cfg->configFile = strdup(CONFIG_FILE);
   cfg->cacheFile = strdup(CACHE_FILE);
+  cfg->logFile = strdup(LOG_FILE);
   cfg->locations = NULL;
   cfg->apiKey = NULL;
   cfg->refreshRate = 360 * 60;
@@ -54,6 +55,8 @@ void freePinotamsConfig(PinotamsConfig *_cfg)
     free(_cfg->configFile);
   if (_cfg->cacheFile)
     free(_cfg->cacheFile);
+  if (_cfg->logFile)
+    free(_cfg->logFile);
   if (_cfg->locations)
     free(_cfg->locations);
   if (_cfg->apiKey)

@@ -35,11 +35,19 @@ static int go(int _test)
 {
   PinotamsConfig *cfg = getPinotamsConfig();
   NOTAM *notams;
+  FILE *log;
+  char logTime[256];
   time_t nextUpdate = 0, now;
+  struct tm nowTime;
+  int ret;
+
+  log = fopen(cfg->logFile, "a+");
 
   do
   {
     now = time(0);
+    localtime_r(&now, &nowTime);
+    strftime(logTime, 256, "%a, %d %b %Y %H:%M:%S %z >> ", &nowTime);
 
     if (now < nextUpdate)
     {
@@ -47,25 +55,47 @@ static int go(int _test)
       continue;
     }
 
-    trimNotams(cfg->cacheFile);
-    queryNotams(cfg->cacheFile, cfg->apiKey, cfg->locations, cfg->filterSuaw,
-      &notams);
+    ret = trimNotams(cfg->cacheFile);
+    if (ret != 0 && log)
+    {
+      fprintf(log, "%s Failed to trim NOTAM cache.\n", logTime);
+      fflush(log);
+    }
+
+    ret = queryNotams(cfg->cacheFile, cfg->apiKey, cfg->locations,
+      cfg->filterSuaw, &notams);
+    if (ret != 0 && log)
+    {
+      fprintf(log, "%s Failed to query NOTAMs.\n", logTime);
+      fflush(log);
+    }
 
     if (notams)
     {
-      mailNotams(cfg->smtpServer, cfg->smtpPort, cfg->smtpUser, cfg->smtpPwd,
+      ret = mailNotams(cfg->smtpServer, cfg->smtpPort, cfg->smtpUser, cfg->smtpPwd,
         cfg->smtpSender, cfg->smtpSenderName, cfg->smtpRecipients, cfg->smtpTLS,
         notams);
+      if (ret != 0 && log)
+      {
+        fprintf(log, "%s Failed to mail NOTAMs.\n", logTime);
+        fflush(log);
+      }
+
       freeNotams(notams);
       notams = NULL;
     }
 
     nextUpdate = ((now / cfg->refreshRate) + (now % cfg->refreshRate != 0)) *
       cfg->refreshRate;
+
+    if (_test)
+      break;
   } while (run);
 
   if (cfg)
     freePinotamsConfig(cfg);
+  if (log)
+    fclose(log);
 
   return 0;
 }

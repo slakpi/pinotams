@@ -16,6 +16,7 @@ if (NOT DEFINED VAR_PREFIX)
 endif (NOT DEFINED VAR_PREFIX)
 set(CONFIG_FILE ${CMAKE_INSTALL_PREFIX}/${ETC_PREFIX}pinotams.conf)
 set(CACHE_FILE ${CMAKE_INSTALL_PREFIX}/${VAR_PREFIX}pinotams.db)
+set(LOG_FILE ${CMAKE_INSTALL_PREFIX}/${VAR_PREFIX}pinotams.log)
 configure_file(config.h.in config.h)
 
 find_package(BISON REQUIRED)
