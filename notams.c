@@ -341,19 +341,36 @@ int queryNotams(const char *_db, const char *_apiKey, const char *_locations,
 
     errCode = pcre2_match(regex, (PCRE2_SPTR)notamStr, -1, 0, 0, match, NULL);
     if (errCode != 3)
-      continue;
-
-    ovect = pcre2_get_ovector_pointer(match);
-
-    strncpy(dateBuf, &notamStr[ovect[2]], 10);
-    lds = notamDateTimeToLilian(dateBuf);
-
-    if (strncasecmp(&notamStr[ovect[4]], "PERM", 4) == 0)
-      lde = lds + 180 * 24 * 60 * 60; // Default to 180 days
+    {
+      /**
+       * Failed to find a valid date group. Just default to 180 from today.
+       * If this NOTAM is still around in 180 days, it will be sent out
+       * again.
+       */
+      lds = lilianNow();
+      lde = lds + 180 * 24 * 60 * 60;
+    }
     else
     {
-      strncpy(dateBuf, &notamStr[ovect[4]], 10);
-      lde = notamDateTimeToLilian(dateBuf);
+      ovect = pcre2_get_ovector_pointer(match);
+
+      strncpy(dateBuf, &notamStr[ovect[2]], 10);
+      lds = notamDateTimeToLilian(dateBuf);
+
+      if (strncasecmp(&notamStr[ovect[4]], "PERM", 4) == 0)
+      {
+        /**
+         * This is a permanent notam. Use the original creation date, but set
+         * the expiration day to 180 days from today. This will send the NOTAM
+         * out again if it still exists.
+         */
+        lde = lilianNow() + 180 * 24 * 60 * 60;
+      }
+      else
+      {
+        strncpy(dateBuf, &notamStr[ovect[4]], 10);
+        lde = notamDateTimeToLilian(dateBuf);
+      }
     }
 
     hashNotam(notamStr, hash, 32);
