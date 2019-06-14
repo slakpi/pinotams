@@ -20,6 +20,7 @@ typedef struct __MailContext
   const NOTAM *cur;
   const char *pos;
   size_t remaining;
+  size_t line;
 } MailContext;
 
 static const char *sep = "\n\n";
@@ -33,7 +34,8 @@ static size_t notamCallback(char *_ptr, size_t _size, size_t _nmemb,
   void *_userdata)
 {
   MailContext *ctx = (MailContext*)_userdata;
-  size_t len;
+  char *p;
+  size_t len, i;
 
   if (!ctx->cur)
     return 0;
@@ -42,12 +44,43 @@ static size_t notamCallback(char *_ptr, size_t _size, size_t _nmemb,
   {
     ctx->pos = ctx->cur->text;
     ctx->remaining = strlen(ctx->cur->text);
+    ctx->line = 0;
   }
 
-  len = min(ctx->remaining, _nmemb);
-  memcpy(_ptr, ctx->pos, len);
-  ctx->pos += len;
-  ctx->remaining -= len;
+  i = 0;
+  p = _ptr;
+  len = min(ctx->remaining, _nmemb - 1);
+
+  if (ctx->state != notamState)
+  {
+    memcpy(_ptr, ctx->pos, len);
+    ctx->pos += len;
+    ctx->remaining -= len;
+  }
+  else
+  {
+    while (ctx->remaining > 0 && i < len)
+    {
+      if (ctx->line < 998 && *ctx->pos != '\n')
+      {
+        *p++ = *ctx->pos;
+        ++i;
+      }
+      else
+      {
+        *p++ = '\r';
+        *p++ = '\n';
+        i += 2;
+        ctx->line = 0;
+
+        if (*ctx->pos != '\n')
+          continue;
+      }
+
+      ++ctx->pos;
+      --ctx->remaining;
+    }
+  }
 
   if (ctx->remaining > 0)
     return len;
@@ -121,16 +154,17 @@ int mailNotams(const char *_server, int _port, const char *_user,
   hdr = (char*)malloc(sizeof(char) * buf);
 
   r = getStrVectorCount(_recipients);
-  strncpy(hdr, "To:", 4);
-  p = hdr + 3;
+  strncpy(hdr, "To: ", 5);
+  p = hdr + 4;
   for (i = 0; i < r; ++i)
   {
     if (!first)
-      *p++ = ',';
+    {
+      strncpy(p, ", \r\n ", 6); // Folding white-space
+      p += 5;
+    }
 
-    len = snprintf(p, buf - (p - hdr), " <%s>",
-      getStrInVector(_recipients, i));
-
+    len = snprintf(p, buf - (p - hdr), "<%s>", getStrInVector(_recipients, i));
     p += len;
     first = 0;
   }
