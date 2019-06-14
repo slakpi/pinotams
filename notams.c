@@ -209,7 +209,7 @@ static size_t notamCallback(char *_ptr, size_t _size, size_t _nmemb,
 }
 
 int queryNotams(const char *_db, const char *_apiKey, const char *_locations,
-  NOTAM **_latest)
+  int _filterSuaw, NOTAM **_latest)
 {
   CURL *curlLib;
   CURLcode res;
@@ -312,6 +312,9 @@ int queryNotams(const char *_db, const char *_apiKey, const char *_locations,
     locStr = json_string_value(loc);
     notamStr = json_string_value(notam);
     keyStr = json_string_value(key);
+
+    if (_filterSuaw && strncmp("!SUAW", notamStr, 5) == 0)
+      continue;
 
     errCode = pcre2_match(regex, (PCRE2_SPTR)notamStr, -1, 0, 0, match, NULL);
     if (errCode != 3)

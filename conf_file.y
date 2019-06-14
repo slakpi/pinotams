@@ -79,6 +79,9 @@ assignment
     case confRefreshRate:
       _cfg->refreshRate = $3 * 60;
       break;
+    case confFilterSuaw:
+      _cfg->filterSuaw = $3;
+      break;
     case confSmtpPort:
       _cfg->smtpPort = $3;
       break;

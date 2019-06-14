@@ -52,6 +52,11 @@ WS          [\v\r\n\t ]+
   return TOKEN_PARAM;
 }
 
+"filter-suaw" {
+  yylval->param = confFilterSuaw;
+  return TOKEN_PARAM;
+}
+
 "smtp-server" {
   yylval->param = confSmtpServer;
   return TOKEN_PARAM;
