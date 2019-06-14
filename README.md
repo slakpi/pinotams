@@ -55,8 +55,12 @@ You must register for an ICAO API key and have access to a SMTP server.
     # 1155Z.
     refresh-rate=360;
 
+    # 1 to filter special-use airspace ARTCC NOTAMs.
+    filter-suaw=1;
+
     # SMTP outgoing mail server settings. Refer to your mail service's
-    # settings. NOT tested with Gmail's application permissions.
+    # settings. NOT tested with Gmail's application permissions. Multiple
+    # smtp-recipient directives are allowed.
     smtp-server="my.mail-server.com";
     smtp-port=587;
     smtp-user="sender@mydomain.com";
@@ -64,6 +68,7 @@ You must register for an ICAO API key and have access to a SMTP server.
     smtp-sender="sender@mydomain.com";
     smtp-sender-name="My NOTAMs Service";
     smtp-recipient="you@yourdomain.com";
+    smtp-recipient="another@somedomain.com";
 
     # 1 to use SSL/TLS and user/password authentication.
     smtp-tls=1;
