@@ -16,6 +16,7 @@ PiNotams uses CMake 3.6 to build. The following dependencies must be installed:
   * jansson (http://www.digip.org/jansson/)
   * SQLite3 (https://sqlite.org/index.html)
   * libuuid (https://sourceforge.net/projects/libuuid/)
+  * libmhash (https://sourceforge.net/projects/mhash/)
 
 After cloning the repository, use the following commands to perform a simple
 build:
@@ -44,9 +45,10 @@ You must register for an ICAO API key and have access to a SMTP server.
     # https://www.icao.int/safety/iStars/Pages/API-Data-Service.aspx
     api-key="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx";
 
-    # Locations for data query. ICAO allows up to 10 in a single query.
-    # Use KZ** for ARTCC NOTAMs, e.g. KZSE for Seattle Center.
-    locations="7S3,KHIO,KMMV,KUAO,KSLE,KVUO,KSPB,KZSE";
+    # 4-letter ICAO identifiers. For US ARTCC NOTAMs, use KZ**, e.g. KZSE for
+    # Seattle ARTCC. For US regulatory NOTAMs, use KZZZ. For US non-ICAO
+    # identifiers such as 7S3, use K***, e.g. K7S3.
+    locations="K7S3,KHIO,KMMV,KUAO,KSLE,KVUO,KSPB,KZSE";
 
     # Interval in minutes for NOTAM queries. To be kind to the ICAO service,
     # keep this larger than 60 minutes. PiNOTAMs updates at 0000Z + this time
@@ -55,8 +57,11 @@ You must register for an ICAO API key and have access to a SMTP server.
     # 1155Z.
     refresh-rate=360;
 
-    # 1 to filter special-use airspace ARTCC NOTAMs.
+    # Non-0 to filter special-use airspace ARTCC NOTAMs.
     filter-suaw=1;
+
+    # Non-0 to log debug information.
+    debug-log=0;
 
     # SMTP outgoing mail server settings. Refer to your mail service's
     # settings. NOT tested with Gmail's application permissions. Multiple
@@ -70,7 +75,7 @@ You must register for an ICAO API key and have access to a SMTP server.
     smtp-recipient="you@yourdomain.com";
     smtp-recipient="another@somedomain.com";
 
-    # 1 to use SSL/TLS and user/password authentication.
+    # Non-0 to use SSL/TLS and user/password authentication.
     smtp-tls=1;
 
 Running Automatically

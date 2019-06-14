@@ -57,6 +57,11 @@ WS          [\v\r\n\t ]+
   return TOKEN_PARAM;
 }
 
+"debug-log" {
+  yylval->param = confDebugLog;
+  return TOKEN_PARAM;
+}
+
 "smtp-server" {
   yylval->param = confSmtpServer;
   return TOKEN_PARAM;

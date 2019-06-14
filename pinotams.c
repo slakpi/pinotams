@@ -31,23 +31,37 @@ static void signalHandler(int _signo)
   }
 }
 
+static void writeLog(FILE *_log, const char *_msg)
+{
+  char logTime[256];
+  time_t now;
+  struct tm nowTime;
+
+  if (!_log)
+    return;
+
+  now = time(0);
+  localtime_r(&now, &nowTime);
+  strftime(logTime, 256, "%a, %d %b %Y %H:%M:%S %z >> ", &nowTime);
+
+  fprintf(_log, "%s %s\n", logTime, _msg);
+  fflush(_log);
+}
+
 static int go(int _test)
 {
   PinotamsConfig *cfg = getPinotamsConfig();
   NOTAM *notams;
-  FILE *log;
-  char logTime[256];
+  FILE *log = NULL;
   time_t nextUpdate = 0, now;
-  struct tm nowTime;
   int ret;
 
-  log = fopen(cfg->logFile, "a+");
+  if (cfg->debugLog)
+    log = fopen(cfg->logFile, "a+");
 
   do
   {
     now = time(0);
-    localtime_r(&now, &nowTime);
-    strftime(logTime, 256, "%a, %d %b %Y %H:%M:%S %z >> ", &nowTime);
 
     if (now < nextUpdate)
     {
@@ -56,30 +70,23 @@ static int go(int _test)
     }
 
     ret = trimNotams(cfg->cacheFile);
-    if (ret != 0 && log)
-    {
-      fprintf(log, "%s Failed to trim NOTAM cache.\n", logTime);
-      fflush(log);
-    }
+    if (ret != 0)
+      writeLog(log, "Failed to trim NOTAM cache.");
 
     ret = queryNotams(cfg->cacheFile, cfg->apiKey, cfg->locations,
       cfg->filterSuaw, &notams);
-    if (ret != 0 && log)
-    {
-      fprintf(log, "%s Failed to query NOTAMs.\n", logTime);
-      fflush(log);
-    }
+    if (ret != 0)
+      writeLog(log, "Failed to query NOTAMs.");
 
-    if (notams)
+    if (!notams)
+      writeLog(log, "No new NOTAMs.");
+    else
     {
       ret = mailNotams(cfg->smtpServer, cfg->smtpPort, cfg->smtpUser, cfg->smtpPwd,
         cfg->smtpSender, cfg->smtpSenderName, cfg->smtpRecipients, cfg->smtpTLS,
         notams);
-      if (ret != 0 && log)
-      {
-        fprintf(log, "%s Failed to mail NOTAMs.\n", logTime);
-        fflush(log);
-      }
+      if (ret != 0)
+        writeLog(log, "Failed to mail NOTAMs.");
 
       freeNotams(notams);
       notams = NULL;

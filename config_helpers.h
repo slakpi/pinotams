@@ -13,6 +13,7 @@ typedef struct __PinotamsConfig
   char *apiKey;
   int refreshRate;
   int filterSuaw;
+  int debugLog;
   char *smtpServer;
   int smtpPort;
   char *smtpUser;

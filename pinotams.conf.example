@@ -1,7 +1,8 @@
 api-key="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx";
-locations="7S3,KHIO,KMMV,KUAO,KSLE,KVUO,KSPB,KZSE";
+locations="K7S3,KHIO,KMMV,KUAO,KSLE,KVUO,KSPB,KZSE";
 refresh-rate=360; # Check for new NOTAMs every X minutes
-filter-suaw=0; # Filter SUAW NOTAMs
+filter-suaw=1; # Filter SUAW NOTAMs
+debug-log=0; # Log debugging information
 smtp-server="my.mail-server.com";
 smtp-port=587;
 smtp-user="sender@mydomain.com";
