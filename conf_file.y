@@ -45,7 +45,8 @@ assignment
     switch($1)
     {
     case confLocations:
-      _cfg->locations = $3;
+      addStrToVector(_cfg->locations, $3);
+      free($3);
       break;
     case confApiKey:
       _cfg->apiKey = $3;

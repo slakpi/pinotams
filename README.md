@@ -48,7 +48,12 @@ You must register for an ICAO API key and have access to a SMTP server.
     # 4-letter ICAO identifiers. For US ARTCC NOTAMs, use KZ**, e.g. KZSE for
     # Seattle ARTCC. For US regulatory NOTAMs, use KZZZ. For US non-ICAO
     # identifiers such as 7S3, use K***, e.g. K7S3.
+    #
+    # Multiple location directives are allowed, and each can have up to 10
+    # locations. Each is sent as a different query to the ICAO API Data
+    # Service, and the ICAO API limits each query to 10 locations.
     locations="K7S3,KHIO,KMMV,KUAO,KSLE,KVUO,KSPB,KZSE";
+    locations=...more locations...;
 
     # Interval in minutes for NOTAM queries. To be kind to the ICAO service,
     # keep this larger than 60 minutes. PiNOTAMs updates at 0000Z + this time
@@ -73,7 +78,7 @@ You must register for an ICAO API key and have access to a SMTP server.
     smtp-sender="sender@mydomain.com";
     smtp-sender-name="My NOTAMs Service";
     smtp-recipient="you@yourdomain.com";
-    smtp-recipient="another@somedomain.com";
+    smtp-recipient=...another email address...;
 
     # Non-0 to use SSL/TLS and user/password authentication.
     smtp-tls=1;

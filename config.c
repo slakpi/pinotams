@@ -21,7 +21,7 @@ PinotamsConfig* getPinotamsConfig()
   cfg->configFile = strdup(CONFIG_FILE);
   cfg->cacheFile = strdup(CACHE_FILE);
   cfg->logFile = strdup(LOG_FILE);
-  cfg->locations = NULL;
+  initStrVector(&cfg->locations);
   cfg->apiKey = NULL;
   cfg->refreshRate = 360 * 60;
   cfg->filterSuaw = 1;
@@ -58,8 +58,6 @@ void freePinotamsConfig(PinotamsConfig *_cfg)
     free(_cfg->cacheFile);
   if (_cfg->logFile)
     free(_cfg->logFile);
-  if (_cfg->locations)
-    free(_cfg->locations);
   if (_cfg->apiKey)
     free(_cfg->apiKey);
   if (_cfg->smtpServer)
@@ -73,6 +71,7 @@ void freePinotamsConfig(PinotamsConfig *_cfg)
   if (_cfg->smtpSenderName)
     free(_cfg->smtpSenderName);
 
+  freeStrVector(&_cfg->locations);
   freeStrVector(&_cfg->smtpRecipients);
 
   free(_cfg);

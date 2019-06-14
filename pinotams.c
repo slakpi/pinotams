@@ -51,9 +51,11 @@ static void writeLog(FILE *_log, const char *_msg)
 static int go(int _test)
 {
   PinotamsConfig *cfg = getPinotamsConfig();
-  NOTAM *notams;
+  NOTAM *notams, *notamsTmp, *p;
   FILE *log = NULL;
   time_t nextUpdate = 0, now;
+  const char *query;
+  size_t len, i;
   int ret;
 
   if (cfg->debugLog)
@@ -73,10 +75,37 @@ static int go(int _test)
     if (ret != 0)
       writeLog(log, "Failed to trim NOTAM cache.");
 
-    ret = queryNotams(cfg->cacheFile, cfg->apiKey, cfg->locations,
-      cfg->filterSuaw, &notams);
-    if (ret != 0)
-      writeLog(log, "Failed to query NOTAMs.");
+    notams = NULL;
+    len = getStrVectorCount(cfg->locations);
+    for (i = 0; i < len; ++i)
+    {
+      query = getStrInVector(cfg->locations, i);
+      ret = queryNotams(cfg->cacheFile, cfg->apiKey, query, cfg->filterSuaw,
+        &notamsTmp);
+      if (ret != 0)
+      {
+        writeLog(log, "Failed to query NOTAMs.");
+        writeLog(log, query);
+        continue;
+      }
+
+      if (notamsTmp)
+      {
+        if (notams)
+          p->next = notamsTmp;
+        else
+        {
+          notams = notamsTmp;
+          p = notams;
+        }
+
+        while (p->next != NULL)
+          p = p->next;
+      }
+    }
+
+    notamsTmp = NULL;
+    p = NULL;
 
     if (!notams)
       writeLog(log, "No new NOTAMs.");

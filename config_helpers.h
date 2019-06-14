@@ -9,7 +9,7 @@ typedef struct __PinotamsConfig
   char *configFile;
   char *cacheFile;
   char *logFile;
-  char *locations;
+  StrVector locations;
   char *apiKey;
   int refreshRate;
   int filterSuaw;
