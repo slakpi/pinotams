@@ -11,6 +11,7 @@
 #define PCRE2_CODE_UNIT_WIDTH 8
 #include <pcre2.h>
 
+#include "log.h"
 #include "notams.h"
 
 typedef struct __DateTime
@@ -232,7 +233,7 @@ static size_t notamCallback(char *_ptr, size_t _size, size_t _nmemb,
 }
 
 int queryNotams(const char *_db, const char *_apiKey, const char *_locations,
-  int _filterSuaw, NOTAM **_latest)
+  StrVector _filters, NOTAM **_latest)
 {
   CURL *curlLib;
   CURLcode res;
@@ -243,29 +244,44 @@ int queryNotams(const char *_db, const char *_apiKey, const char *_locations,
   Response json;
   sqlite3 *db = NULL;
   sqlite3_stmt *chk, *ins;
-  pcre2_code *regex;
-  pcre2_match_data *match = NULL;
+  pcre2_code **regex;
+  pcre2_match_data **match;
   PCRE2_SIZE errOffset, *ovect;
   int errCode;
-  size_t i, notamCount;
+  size_t i, j, notamCount, filterCount;
   int64_t lds, lde;
   NOTAM *c, *p;
   int ok = -1;
 
   *_latest = NULL;
 
-  regex = pcre2_compile(
-    (PCRE2_SPTR)"([0-9]{10})-([0-9]{10}|PERM)",
-    -1,
-    PCRE2_UTF,
-    &errCode,
-    &errOffset,
-    NULL);
-  if (!regex)
-    goto cleanup;
+  filterCount = getStrVectorCount(_filters);
+  regex = (pcre2_code**)malloc(sizeof(pcre2_code*) * (filterCount + 1));
+  match = (pcre2_match_data**)malloc(sizeof(pcre2_match_data*) * (filterCount + 1));
 
-  match = pcre2_match_data_create_from_pattern(regex, NULL);
-  if (!match)
+  regex[0] = pcre2_compile((PCRE2_SPTR)"([0-9]{10})-([0-9]{10}|PERM)", -1,
+    PCRE2_UTF, &errCode, &errOffset, NULL);
+
+  match[0] = NULL;
+  if (regex[0])
+    match[0] = pcre2_match_data_create_from_pattern(regex[0], NULL);
+
+  for (i = 0; i < filterCount; ++i)
+  {
+    regex[i + 1] = pcre2_compile((PCRE2_SPTR)getStrInVector(_filters, i), -1,
+      PCRE2_UTF, &errCode, &errOffset, NULL);
+
+    if (regex[i + 1])
+      match[i + 1] = pcre2_match_data_create_from_pattern(regex[i + 1], NULL);
+    else
+    {
+      writeLog("Failed to compile user filter.");
+      writeLog(getStrInVector(_filters, i));
+      match[i + 1] = NULL;
+    }
+  }
+
+  if (!regex[0])
     goto cleanup;
 
   curlLib = curl_easy_init();
@@ -336,23 +352,23 @@ int queryNotams(const char *_db, const char *_apiKey, const char *_locations,
     notamStr = json_string_value(notam);
     keyStr = json_string_value(key);
 
-    if (_filterSuaw && strncmp("!SUAW", notamStr, 5) == 0)
-      continue;
+    errCode = pcre2_match(regex[0], (PCRE2_SPTR)notamStr, -1, 0, 0, match[0],
+      NULL);
 
-    errCode = pcre2_match(regex, (PCRE2_SPTR)notamStr, -1, 0, 0, match, NULL);
     if (errCode != 3)
     {
       /**
-       * Failed to find a valid date group. Just default to 180 from today.
-       * If this NOTAM is still around in 180 days, it will be sent out
-       * again.
+       * Failed to find a valid date group. Just default to 180 days from
+       * today. If this NOTAM is still around in 180 days, it will be sent
+       * out again.
        */
       lds = lilianNow();
       lde = lds + 180 * 24 * 60 * 60;
+      writeLog("NOTAM has invalid date/time groups; using defaults.");
     }
     else
     {
-      ovect = pcre2_get_ovector_pointer(match);
+      ovect = pcre2_get_ovector_pointer(match[0]);
 
       strncpy(dateBuf, &notamStr[ovect[2]], 10);
       lds = notamDateTimeToLilian(dateBuf);
@@ -373,11 +389,34 @@ int queryNotams(const char *_db, const char *_apiKey, const char *_locations,
       }
     }
 
+    errCode = -1;
+
+    for (j = 0; j < filterCount; ++j)
+    {
+      errCode = pcre2_match(regex[j + 1], (PCRE2_SPTR)notamStr, -1, 0, 0,
+        match[j + 1], NULL);
+
+      if (errCode >= 0)
+        break;
+    }
+
+    if (errCode >= 0)
+    {
+      writeLog("NOTAM matches user filter.");
+      writeLog(notamStr);
+      writeLog("\n\n");
+      continue; // Filter matched.
+    }
+
     hashNotam(notamStr, hash, 32);
     sqlite3_bind_blob(chk, 1, hash, 32, SQLITE_STATIC);
 
     if (sqlite3_step(chk) == SQLITE_DONE)
     {
+      writeLog("Recording new NOTAM.");
+      writeLog(notamStr);
+      writeLog("\n\n");
+
       sqlite3_bind_blob(ins, 1, hash, 32, SQLITE_STATIC);
       sqlite3_bind_text(ins, 2, keyStr, -1, SQLITE_STATIC);
       sqlite3_bind_int64(ins, 3, lde);
@@ -408,9 +447,18 @@ int queryNotams(const char *_db, const char *_apiKey, const char *_locations,
 
 cleanup:
   if (regex)
-    pcre2_code_free(regex);
-  if (match)
-    pcre2_match_data_free(match);
+  {
+    for (i = 0; i < filterCount; ++i)
+    {
+      if (regex[i])
+        pcre2_code_free(regex[i]);
+      if (match[i])
+        pcre2_match_data_free(match[i]);
+    }
+
+    free(regex);
+    free(match);
+  }
   if (curlLib)
     curl_easy_cleanup(curlLib);
   if (root)

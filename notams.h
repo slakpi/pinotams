@@ -2,6 +2,7 @@
 #define NOTAMS_H
 
 #include <sys/types.h>
+#include "str_vector.h"
 
 typedef struct __NOTAM
 {
@@ -14,8 +15,10 @@ typedef struct __NOTAM
 } NOTAM;
 
 int queryNotams(const char *_db, const char *_apiKey, const char *_locations,
-  int _filterSuaw, NOTAM **_latest);
+  StrVector _filters, NOTAM **_latest);
+
 void freeNotams(NOTAM *_notams);
+
 int trimNotams(const char *_db);
 
 #endif

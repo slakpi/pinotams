@@ -6,7 +6,7 @@ typedef enum __ConfParam
   confLocations,
   confApiKey,
   confRefreshRate,
-  confFilterSuaw,
+  confFilter,
   confDebugLog,
   confSmtpServer,
   confSmtpPort,

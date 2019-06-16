@@ -52,8 +52,8 @@ WS          [\v\r\n\t ]+
   return TOKEN_PARAM;
 }
 
-"filter-suaw" {
-  yylval->param = confFilterSuaw;
+"filter" {
+  yylval->param = confFilter;
   return TOKEN_PARAM;
 }
 

@@ -48,6 +48,10 @@ assignment
       addStrToVector(_cfg->locations, $3);
       free($3);
       break;
+    case confFilter:
+      addStrToVector(_cfg->filters, $3);
+      free($3);
+      break;
     case confApiKey:
       _cfg->apiKey = $3;
       break;
@@ -79,9 +83,6 @@ assignment
     {
     case confRefreshRate:
       _cfg->refreshRate = $3 * 60;
-      break;
-    case confFilterSuaw:
-      _cfg->filterSuaw = ($3 != 0);
       break;
     case confDebugLog:
       _cfg->debugLog = ($3 != 0);

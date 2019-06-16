@@ -9,6 +9,7 @@
 #include "config_helpers.h"
 #include "notams.h"
 #include "mail.h"
+#include "log.h"
 
 static const char *shortArgs = "st";
 static const struct option longArgs[] = {
@@ -31,35 +32,17 @@ static void signalHandler(int _signo)
   }
 }
 
-static void writeLog(FILE *_log, const char *_msg)
-{
-  char logTime[256];
-  time_t now;
-  struct tm nowTime;
-
-  if (!_log)
-    return;
-
-  now = time(0);
-  localtime_r(&now, &nowTime);
-  strftime(logTime, 256, "%a, %d %b %Y %H:%M:%S %z >> ", &nowTime);
-
-  fprintf(_log, "%s %s\n", logTime, _msg);
-  fflush(_log);
-}
-
 static int go(int _test)
 {
   PinotamsConfig *cfg = getPinotamsConfig();
   NOTAM *notams, *notamsTmp, *p;
-  FILE *log = NULL;
   time_t nextUpdate = 0, now;
   const char *query;
   size_t len, i;
   int ret;
 
   if (cfg->debugLog)
-    log = fopen(cfg->logFile, "a+");
+    openLog();
 
   do
   {
@@ -73,19 +56,19 @@ static int go(int _test)
 
     ret = trimNotams(cfg->cacheFile);
     if (ret != 0)
-      writeLog(log, "Failed to trim NOTAM cache.");
+      writeLog("Failed to trim NOTAM cache.");
 
     notams = NULL;
     len = getStrVectorCount(cfg->locations);
     for (i = 0; i < len; ++i)
     {
       query = getStrInVector(cfg->locations, i);
-      ret = queryNotams(cfg->cacheFile, cfg->apiKey, query, cfg->filterSuaw,
+      ret = queryNotams(cfg->cacheFile, cfg->apiKey, query, cfg->filters,
         &notamsTmp);
       if (ret != 0)
       {
-        writeLog(log, "Failed to query NOTAMs.");
-        writeLog(log, query);
+        writeLog("Failed to query NOTAMs.");
+        writeLog(query);
         continue;
       }
 
@@ -108,14 +91,14 @@ static int go(int _test)
     p = NULL;
 
     if (!notams)
-      writeLog(log, "No new NOTAMs.");
+      writeLog("No new NOTAMs.");
     else
     {
       ret = mailNotams(cfg->smtpServer, cfg->smtpPort, cfg->smtpUser, cfg->smtpPwd,
         cfg->smtpSender, cfg->smtpSenderName, cfg->smtpRecipients, cfg->smtpTLS,
         notams);
       if (ret != 0)
-        writeLog(log, "Failed to mail NOTAMs.");
+        writeLog("Failed to mail NOTAMs.");
 
       freeNotams(notams);
       notams = NULL;
@@ -130,8 +113,8 @@ static int go(int _test)
 
   if (cfg)
     freePinotamsConfig(cfg);
-  if (log)
-    fclose(log);
+
+  closeLog();
 
   return 0;
 }

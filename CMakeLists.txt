@@ -39,6 +39,7 @@ add_executable(pinotams
   mail.c
   config.c
   str_vector.c
+  log.c
   ${BISON_ConfParser_OUTPUTS}
   ${FLEX_ConfLexer_OUTPUTS})
 target_link_libraries(pinotams curl jansson sqlite3 pcre2-8 uuid mhash)

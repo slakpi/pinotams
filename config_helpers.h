@@ -12,7 +12,7 @@ typedef struct __PinotamsConfig
   StrVector locations;
   char *apiKey;
   int refreshRate;
-  int filterSuaw;
+  StrVector filters;
   int debugLog;
   char *smtpServer;
   int smtpPort;
@@ -25,6 +25,7 @@ typedef struct __PinotamsConfig
 } PinotamsConfig;
 
 PinotamsConfig* getPinotamsConfig();
+
 void freePinotamsConfig(PinotamsConfig *_cfg);
 
 #endif

@@ -127,7 +127,7 @@ int mailNotams(const char *_server, int _port, const char *_user,
   buf = 0;
   r = getStrVectorCount(_recipients);
   if (r < 1)
-    return -1;
+    return 0;
 
   for (i = 0; i < r; ++i)
   {
