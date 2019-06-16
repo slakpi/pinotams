@@ -1,9 +1,9 @@
 #ifndef LOG_H
 #define LOG_H
 
-int openLog();
+int openLog(int _maxLevel);
 
-void writeLog(const char *_fmt, ...);
+void writeLog(int _level, const char *_fmt, ...);
 
 void closeLog();
 

@@ -276,7 +276,7 @@ int queryNotams(const char *_db, const char *_apiKey, const char *_locations,
       match[i + 1] = pcre2_match_data_create_from_pattern(regex[i + 1], NULL);
     else
     {
-      writeLog("Failed to compile user filter: %s", notamStr);
+      writeLog(1, "Failed to compile user filter: %s", notamStr);
       match[i + 1] = NULL;
     }
   }
@@ -306,20 +306,32 @@ int queryNotams(const char *_db, const char *_apiKey, const char *_locations,
   curlLib = NULL;
 
   if (res != CURLE_OK)
+  {
+    writeLog(2, "curl query failed.");
     return -1;
+  }
 
   root = json_loads(json.str, 0, &err);
   freeResponse(&json);
 
   if (!root)
+  {
+    writeLog(2, "Malformed JSON.");
     return -1;
+  }
 
   if (!json_is_array(root))
+  {
+    writeLog(2, "Malformed JSON.");
     goto cleanup;
+  }
 
   db = openDatabase(_db);
   if (!db)
+  {
+    writeLog(2, "Failed to open cache database.");
     goto cleanup;
+  }
 
   sqlite3_prepare(db,
     "INSERT INTO notams(hash, key, expires) VALUES(?, ?, ?);",
@@ -334,25 +346,37 @@ int queryNotams(const char *_db, const char *_apiKey, const char *_locations,
   {
     n = json_array_get(root, i);
     if (!json_is_object(n))
+    {
+      writeLog(2, "Malformed JSON.");
       continue;
+    }
 
     loc = json_object_get(n, "location");
     if (!json_is_string(loc))
+    {
+      writeLog(2, "Missing location property.");
       continue;
+    }
 
     notam = json_object_get(n, "all");
     if (!json_is_string(notam))
+    {
+      writeLog(2, "Missing all property.");
       continue;
+    }
 
     key = json_object_get(n, "key");
     if (!json_is_string(key))
+    {
+      writeLog(2, "Missing key property.");
       continue;
+    }
 
     locStr = json_string_value(loc);
     notamStr = json_string_value(notam);
     keyStr = json_string_value(key);
 
-    writeLog(notamStr);
+    writeLog(2, notamStr);
 
     errCode = pcre2_match(regex[0], (PCRE2_SPTR)notamStr, -1, 0, 0, match[0],
       NULL);
@@ -366,7 +390,8 @@ int queryNotams(const char *_db, const char *_apiKey, const char *_locations,
        */
       lds = lilianNow();
       lde = lds + 180 * 24 * 60 * 60;
-      writeLog("NOTAM has invalid date/time groups; using defaults.\n\n");
+      writeLog(1, "NOTAM %s has invalid date/time groups; using defaults.\n\n",
+        keyStr);
     }
     else
     {
@@ -407,7 +432,7 @@ int queryNotams(const char *_db, const char *_apiKey, const char *_locations,
 
     if (errCode >= 0)
     {
-      writeLog("NOTAM matches user filter.\n\n");
+      writeLog(2, "NOTAM matches user filter.\n\n");
       continue;
     }
 
@@ -415,10 +440,10 @@ int queryNotams(const char *_db, const char *_apiKey, const char *_locations,
     sqlite3_bind_blob(chk, 1, hash, 32, SQLITE_STATIC);
 
     if (sqlite3_step(chk) != SQLITE_DONE)
-      writeLog("NOTAM has already been recorded.\n\n");
+      writeLog(2, "NOTAM has already been recorded.\n\n");
     else
     {
-      writeLog("Recording new NOTAM.\n\n");
+      writeLog(2, "Recording new NOTAM.\n\n");
 
       sqlite3_bind_blob(ins, 1, hash, 32, SQLITE_STATIC);
       sqlite3_bind_text(ins, 2, keyStr, -1, SQLITE_STATIC);
@@ -450,7 +475,7 @@ int queryNotams(const char *_db, const char *_apiKey, const char *_locations,
 
 cleanup:
   if (ok != 0)
-    writeLog("NOTAM QUERY FAILED.");
+    writeLog(1, "NOTAM QUERY FAILED.");
 
   if (regex)
   {

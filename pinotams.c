@@ -41,8 +41,7 @@ static int go(int _test)
   size_t len, i;
   int ret;
 
-  if (cfg->debugLog)
-    openLog();
+  openLog(cfg->debugLog);
 
   do
   {
@@ -56,7 +55,7 @@ static int go(int _test)
 
     ret = trimNotams(cfg->cacheFile);
     if (ret != 0)
-      writeLog("Failed to trim NOTAM cache.");
+      writeLog(1, "Failed to trim NOTAM cache.");
 
     notams = NULL;
     len = getStrVectorCount(cfg->locations);
@@ -67,7 +66,7 @@ static int go(int _test)
         &notamsTmp);
       if (ret != 0)
       {
-        writeLog("Failed to query NOTAMs: %s", query);
+        writeLog(1, "Failed to query NOTAMs: %s", query);
         continue;
       }
 
@@ -90,14 +89,14 @@ static int go(int _test)
     p = NULL;
 
     if (!notams)
-      writeLog("No new NOTAMs.");
+      writeLog(1, "No new NOTAMs.");
     else
     {
       ret = mailNotams(cfg->smtpServer, cfg->smtpPort, cfg->smtpUser, cfg->smtpPwd,
         cfg->smtpSender, cfg->smtpSenderName, cfg->smtpRecipients, cfg->smtpTLS,
         notams);
       if (ret != 0)
-        writeLog("Failed to mail NOTAMs.");
+        writeLog(1, "Failed to mail NOTAMs.");
 
       freeNotams(notams);
       notams = NULL;

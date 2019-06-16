@@ -85,7 +85,7 @@ assignment
       _cfg->refreshRate = $3 * 60;
       break;
     case confDebugLog:
-      _cfg->debugLog = ($3 != 0);
+      _cfg->debugLog = $3;
       break;
     case confSmtpPort:
       _cfg->smtpPort = $3;
