@@ -17,6 +17,7 @@ PiNotams uses CMake 3.6 to build. The following dependencies must be installed:
   * SQLite3 (https://sqlite.org/index.html)
   * libuuid (https://sourceforge.net/projects/libuuid/)
   * libmhash (https://sourceforge.net/projects/mhash/)
+  * pcre2 (https://pcre.org)
 
 After cloning the repository, use the following commands to perform a simple
 build:
