@@ -1,7 +1,7 @@
 api-key="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx";
 locations="K7S3,KHIO,KMMV,KUAO,KSLE,KVUO,KSPB,KZSE";
 refresh-rate=360; # Check for new NOTAMs every X minutes
-filter-suaw=1; # Filter SUAW NOTAMs
+filter="^!SUAW"; # Custom RegEx filters
 debug-log=0; # Log debugging information
 smtp-server="my.mail-server.com";
 smtp-port=587;

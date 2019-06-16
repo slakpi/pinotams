@@ -62,8 +62,10 @@ You must register for an ICAO API key and have access to a SMTP server.
     # 1155Z.
     refresh-rate=360;
 
-    # Non-0 to filter special-use airspace ARTCC NOTAMs.
-    filter-suaw=1;
+    # Specify custom regular expression filters for NOTAMs. Multiple filter
+    # directives are allowed.
+    filter="^!SUAW";
+    fitler=...another filter...
 
     # Non-0 to log debug information.
     debug-log=0;
