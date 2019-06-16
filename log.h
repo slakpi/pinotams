@@ -3,7 +3,7 @@
 
 int openLog();
 
-void writeLog(const char *_msg);
+void writeLog(const char *_fmt, ...);
 
 void closeLog();
 

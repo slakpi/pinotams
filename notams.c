@@ -268,15 +268,15 @@ int queryNotams(const char *_db, const char *_apiKey, const char *_locations,
 
   for (i = 0; i < filterCount; ++i)
   {
-    regex[i + 1] = pcre2_compile((PCRE2_SPTR)getStrInVector(_filters, i), -1,
-      PCRE2_UTF, &errCode, &errOffset, NULL);
+    notamStr = getStrInVector(_filters, i);
+    regex[i + 1] = pcre2_compile((PCRE2_SPTR)notamStr, -1, PCRE2_UTF, &errCode,
+      &errOffset, NULL);
 
     if (regex[i + 1])
       match[i + 1] = pcre2_match_data_create_from_pattern(regex[i + 1], NULL);
     else
     {
-      writeLog("Failed to compile user filter.");
-      writeLog(getStrInVector(_filters, i));
+      writeLog("Failed to compile user filter: %s", notamStr);
       match[i + 1] = NULL;
     }
   }
@@ -449,6 +449,9 @@ int queryNotams(const char *_db, const char *_apiKey, const char *_locations,
   ok = 0;
 
 cleanup:
+  if (ok != 0)
+    writeLog("NOTAM QUERY FAILED.");
+
   if (regex)
   {
     for (i = 0; i < filterCount; ++i)

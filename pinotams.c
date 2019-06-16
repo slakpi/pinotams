@@ -67,8 +67,7 @@ static int go(int _test)
         &notamsTmp);
       if (ret != 0)
       {
-        writeLog("Failed to query NOTAMs.");
-        writeLog(query);
+        writeLog("Failed to query NOTAMs: %s", query);
         continue;
       }
 
