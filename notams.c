@@ -376,7 +376,7 @@ int queryNotams(const char *_db, const char *_apiKey, const char *_locations,
     notamStr = json_string_value(notam);
     keyStr = json_string_value(key);
 
-    writeLog(2, notamStr);
+    writeLog(3, notamStr);
 
     errCode = pcre2_match(regex[0], (PCRE2_SPTR)notamStr, -1, 0, 0, match[0],
       NULL);
@@ -390,7 +390,7 @@ int queryNotams(const char *_db, const char *_apiKey, const char *_locations,
        */
       lds = lilianNow();
       lde = lds + 180 * 24 * 60 * 60;
-      writeLog(1, "NOTAM %s has invalid date/time groups; using defaults.\n\n",
+      writeLog(2, "NOTAM %s has invalid date/time groups; using defaults.",
         keyStr);
     }
     else
@@ -432,7 +432,7 @@ int queryNotams(const char *_db, const char *_apiKey, const char *_locations,
 
     if (errCode >= 0)
     {
-      writeLog(2, "NOTAM matches user filter.\n\n");
+      writeLog(2, "NOTAM %s matches user filter.", keyStr);
       continue;
     }
 
@@ -440,10 +440,10 @@ int queryNotams(const char *_db, const char *_apiKey, const char *_locations,
     sqlite3_bind_blob(chk, 1, hash, 32, SQLITE_STATIC);
 
     if (sqlite3_step(chk) != SQLITE_DONE)
-      writeLog(2, "NOTAM has already been recorded.\n\n");
+      writeLog(2, "NOTAM %s has already been recorded.", keyStr);
     else
     {
-      writeLog(2, "Recording new NOTAM.\n\n");
+      writeLog(2, "Recording new NOTAM %s.", keyStr);
 
       sqlite3_bind_blob(ins, 1, hash, 32, SQLITE_STATIC);
       sqlite3_bind_text(ins, 2, keyStr, -1, SQLITE_STATIC);
