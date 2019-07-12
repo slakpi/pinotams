@@ -39,12 +39,13 @@ static int go(int _test)
   time_t nextUpdate = 0, now;
   const char *query;
   size_t len, i;
-  int ret;
+  int ret, fail;
 
   openLog(cfg->debugLog);
 
   do
   {
+    fail = 0;
     now = time(0);
 
     if (now < nextUpdate)
@@ -64,10 +65,14 @@ static int go(int _test)
       query = getStrInVector(cfg->locations, i);
       ret = queryNotams(cfg->cacheFile, cfg->apiKey, query, cfg->filters,
         &notamsTmp);
+
+      writeLog(2, "queryNotams() returned %d.", ret);
+
       if (ret != 0)
       {
         writeLog(1, "Failed to query NOTAMs: %s", query);
-        continue;
+        fail = 1;
+        break;
       }
 
       if (notamsTmp)
@@ -88,6 +93,17 @@ static int go(int _test)
     notamsTmp = NULL;
     p = NULL;
 
+    if (fail)
+    {
+      if (notams)
+        freeNotams(notams);
+
+      notams = NULL;
+      now = time(0);
+      nextUpdate = now + 300; // 5 minute time out
+      continue;
+    }
+
     if (!notams)
       writeLog(1, "No new NOTAMs.");
     else
@@ -102,6 +118,7 @@ static int go(int _test)
       notams = NULL;
     }
 
+    now = time(0);
     nextUpdate = ((now / cfg->refreshRate) + (now % cfg->refreshRate != 0)) *
       cfg->refreshRate;
 
