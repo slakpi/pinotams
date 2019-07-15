@@ -100,7 +100,7 @@ static int go(int _test)
 
       notams = NULL;
       now = time(0);
-      nextUpdate = now + 300; // 5 minute time out
+      nextUpdate = now + 3600; // 60-minute time out
       continue;
     }
 
