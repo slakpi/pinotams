@@ -83,6 +83,10 @@ assignment
     {
     case confRefreshRate:
       _cfg->refreshRate = $3 * 60;
+
+      if (_cfg->refreshRate < 3600)
+        _cfg->refreshRate = 3600;
+
       break;
     case confDebugLog:
       _cfg->debugLog = $3;
