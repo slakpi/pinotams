@@ -6,15 +6,17 @@
 #include <time.h>
 #include <string.h>
 #include <stdio.h>
+#include "config.h"
 #include "config_helpers.h"
 #include "notams.h"
 #include "mail.h"
 #include "log.h"
 
-static const char *shortArgs = "st";
+static const char *shortArgs = "stv";
 static const struct option longArgs[] = {
   { "stand-alone", no_argument,       0, 's' },
   { "test",        no_argument,       0, 't' },
+  { "version",     no_argument,       0, 'v' },
   { 0,             0,                 0,  0  }
 };
 
@@ -150,6 +152,9 @@ int main(int _argc, char* _argv[])
       standAlone = 1;
       test = 1;
       break;
+    case 'v':
+      printf("pinotams (%s)\n", GIT_COMMIT_HASH);
+      return 0;
     }
   }
 
