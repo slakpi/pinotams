@@ -5,6 +5,12 @@ PiNOTAMs is a configurable aviation NOTAMs scraper that queries the ICAO API
 Data Service for new NOTAMs and delivers the text of any new NOTAMs to an email
 address.
 
+NOTICE
+------
+
+Use of this program in no way satisfies any regulatory requirement for pre-
+flight planning action in any country.
+
 Building
 --------
 
