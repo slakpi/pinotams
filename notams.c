@@ -316,13 +316,14 @@ int queryNotams(const char *_db, const char *_apiKey, const char *_locations,
 
   if (!root)
   {
-    writeLog(2, "Malformed JSON.");
+    writeLog(2, "Failed to parse JSON.");
     return -1;
   }
 
   if (!json_is_array(root))
   {
-    writeLog(2, "Malformed JSON.");
+    writeLog(2, "Empty JSON response.");
+    ok = 0;
     goto cleanup;
   }
 
@@ -347,7 +348,7 @@ int queryNotams(const char *_db, const char *_apiKey, const char *_locations,
     n = json_array_get(root, i);
     if (!json_is_object(n))
     {
-      writeLog(2, "Malformed JSON.");
+      writeLog(2, "Invalid JSON object at index %d.", i);
       continue;
     }
 
@@ -390,7 +391,7 @@ int queryNotams(const char *_db, const char *_apiKey, const char *_locations,
        */
       lds = lilianNow();
       lde = lds + 180 * 24 * 60 * 60;
-      writeLog(2, "NOTAM %s has invalid date/time groups; using defaults.",
+      writeLog(3, "NOTAM %s has invalid date/time groups; using defaults.",
         keyStr);
     }
     else
@@ -432,7 +433,7 @@ int queryNotams(const char *_db, const char *_apiKey, const char *_locations,
 
     if (errCode >= 0)
     {
-      writeLog(2, "NOTAM %s matches user filter.", keyStr);
+      writeLog(3, "NOTAM %s matches user filter.", keyStr);
       continue;
     }
 
@@ -440,10 +441,10 @@ int queryNotams(const char *_db, const char *_apiKey, const char *_locations,
     sqlite3_bind_blob(chk, 1, hash, 32, SQLITE_STATIC);
 
     if (sqlite3_step(chk) != SQLITE_DONE)
-      writeLog(2, "NOTAM %s has already been recorded.", keyStr);
+      writeLog(3, "NOTAM %s has already been recorded.", keyStr);
     else
     {
-      writeLog(2, "Recording new NOTAM %s.", keyStr);
+      writeLog(3, "Recording new NOTAM %s.", keyStr);
 
       sqlite3_bind_blob(ins, 1, hash, 32, SQLITE_STATIC);
       sqlite3_bind_text(ins, 2, keyStr, -1, SQLITE_STATIC);

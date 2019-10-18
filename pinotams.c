@@ -65,6 +65,8 @@ static int go(int _test)
     for (i = 0; i < len; ++i)
     {
       query = getStrInVector(cfg->locations, i);
+
+      writeLog(2, "Querying for locations: %s", query);
       ret = queryNotams(cfg->cacheFile, cfg->apiKey, query, cfg->filters,
         &notamsTmp);
 
@@ -72,10 +74,12 @@ static int go(int _test)
 
       if (ret != 0)
       {
-        writeLog(1, "Failed to query NOTAMs: %s", query);
+        writeLog(1, "Failed to query locations: %s", query);
         fail = 1;
         break;
       }
+
+      writeLog(2, "Query succeeded, merging any new NOTAMs.");
 
       if (notamsTmp)
       {
@@ -103,6 +107,9 @@ static int go(int _test)
       notams = NULL;
       now = time(0);
       nextUpdate = now + 3600; // 60-minute time out
+
+      writeLog(2, "Delaying re-query by 1 hour.");
+
       continue;
     }
 
@@ -110,9 +117,11 @@ static int go(int _test)
       writeLog(1, "No new NOTAMs.");
     else
     {
+      writeLog(2, "Attempting to mail new NOTAMs.");
       ret = mailNotams(cfg->smtpServer, cfg->smtpPort, cfg->smtpUser, cfg->smtpPwd,
         cfg->smtpSender, cfg->smtpSenderName, cfg->smtpRecipients, cfg->smtpTLS,
         notams);
+
       if (ret != 0)
         writeLog(1, "Failed to mail NOTAMs.");
 
