@@ -33,6 +33,8 @@ configure_file(config.h.in config.h)
 
 find_package(BISON REQUIRED)
 find_package(FLEX REQUIRED)
+find_package(Jansson REQUIRED)
+find_package(CURL REQUIRED)
 
 BISON_TARGET(ConfParser
   conf_file.y
