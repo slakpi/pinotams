@@ -250,7 +250,7 @@ int queryNotams(const char *_db, const char *_apiKey, const char *_locations,
   int errCode;
   size_t i, j, notamCount, filterCount;
   int64_t lds, lde;
-  NOTAM *c, *p;
+  NOTAM *c = NULL, *p = NULL;
   int ok = -1;
 
   *_latest = NULL;

@@ -12,6 +12,7 @@
 #include "mail.h"
 #include "log.h"
 
+static const int heartbeatInterv = 1800;
 static const char *shortArgs = "stv";
 static const struct option longArgs[] = {
   { "stand-alone", no_argument,       0, 's' },
@@ -38,7 +39,7 @@ static int go(int _test)
 {
   PinotamsConfig *cfg = getPinotamsConfig();
   NOTAM *notams, *notamsTmp, *p;
-  time_t nextUpdate = 0, now;
+  time_t nextUpdate = 0, nextHeartbeat = 0, now;
   const char *query;
   size_t len, i;
   int ret, fail;
@@ -50,9 +51,15 @@ static int go(int _test)
     fail = 0;
     now = time(0);
 
+    if (now >= nextHeartbeat)
+    {
+      writeLog(1, "Heartbeat.");
+      nextHeartbeat = ((now / heartbeatInterv) + 1) * heartbeatInterv;
+    }
+
     if (now < nextUpdate)
     {
-      usleep(50000);
+      usleep(250000);
       continue;
     }
 
@@ -130,8 +137,7 @@ static int go(int _test)
     }
 
     now = time(0);
-    nextUpdate = ((now / cfg->refreshRate) + (now % cfg->refreshRate != 0)) *
-      cfg->refreshRate;
+    nextUpdate = ((now / cfg->refreshRate) + 1) * cfg->refreshRate;
 
     if (_test)
       break;
