@@ -1,0 +1,11 @@
+FROM ubuntu:focal
+
+ENV DEBIAN_FRONTEND noninteractive
+ENV TZ=America/Los_Angeles
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+RUN apt update && \
+  apt upgrade -y && \
+  apt install -y build-essential git cmake autoconf libtool pkg-config bison \
+  flex libcurl4-openssl-dev libjansson-dev libsqlite3-dev uuid-dev \
+  libmhash-dev libpcre2-dev
