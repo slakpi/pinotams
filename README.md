@@ -102,3 +102,35 @@ repository. This file must be placed in `/lib/systemd/system` and renamed to
 Use `sudo systemctl start pinotams.service` to test starting PiNOTAMs and use
 `sudo systemctl stop pinotams.service` to stop it. To enable automatically
 starting PiNOTAMs on boot, use `sudo systemctl enable pinotams.service`.
+
+Docker
+------
+
+PiNOTAMs includes two Dockerfiles: `Dockerfile.build` and `Dockerfile`.
+`Dockerfile.build` creates a Docker container that can build PiNOTAMs with
+Ubuntu 20.04. The following command will build the image:
+
+    % docker build . -f Dockerfile.build -t pinotams-build-base:latest
+
+With the build image, run the following command to build the final image:
+
+    % docker build . -t pinotams:latest
+
+The build uses `/opt/pinotams` as the install prefix inside the container. To
+store the configuration, cache database, and log files outside of the container,
+use the following volume maps:
+
+    <Host etc>:/opt/pinotams/etc
+    <Host var>:/opt/pinotams/var/pinotams
+
+For example:
+
+    % mkdir -p /opt/pinotams/etc
+    % mkdir -p /opt/pinotams/var
+    % cp pinotams.conf.example /opt/pinotams/etc/pinotams.conf
+    % vi /opt/pinotams/pinotams.conf
+      ...edit the configuration...
+    % docker run -d --name pinotams --hostname pinotams \
+    -v /opt/pinotams/etc:/opt/pinotams/etc \
+    -v /opt/pinotams/var:/opt/pinotams/var/pinotams \
+    pinotams:latest
