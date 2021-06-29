@@ -130,7 +130,7 @@ For example:
     % cp pinotams.conf.example /opt/pinotams/etc/pinotams.conf
     % vi /opt/pinotams/pinotams.conf
       ...edit the configuration...
-    % docker run -d --name pinotams --hostname pinotams \
+    % docker run -d --name=pinotams --hostname=pinotams --restart=always \
     -v /opt/pinotams/etc:/opt/pinotams/etc \
     -v /opt/pinotams/var:/opt/pinotams/var/pinotams \
     pinotams:latest
