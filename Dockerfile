@@ -5,7 +5,7 @@ WORKDIR /src
 COPY . .
 RUN mkdir build && \
   cd build && \
-  cmake .. -DCMAKE_INSTALL_PREFIX=/opt/pinotams && \
+  cmake .. -DCMAKE_INSTALL_PREFIX=/opt/pinotams -DCMAKE_BUILD_TYPE=Release && \
   make
 
 FROM ubuntu:focal
